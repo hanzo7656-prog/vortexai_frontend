@@ -370,6 +370,7 @@ body {
 }
 
 /* دستورات سریع */
+/*
 .quick-commands-section {
   border-top: 1px solid var(--border-light);
   padding: 1rem 1.5rem;
@@ -422,7 +423,7 @@ body {
 .command-text {
   font-weight: 500;
 }
-
+*/
 /* ورودی چت */
 .chat-input-container {
   border-top: 1px solid var(--border-light);
