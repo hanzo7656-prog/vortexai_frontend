@@ -1,12 +1,13 @@
 {
   "name": "vortexai-frontend",
   "version": "1.0.0",
-  "description": "VortexAI Monitoring Frontend",
+  "description": "VortexAI Monitoring Frontend - Modern React Dashboard",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next export"
   },
   "dependencies": {
     "next": "13.5.6",
@@ -15,6 +16,18 @@
   },
   "devDependencies": {
     "eslint": "8.51.0",
-    "eslint-config-next": "13.5.6"
-  }
+    "eslint-config-next": "13.5.6",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5"
+  },
+  "keywords": [
+    "monitoring",
+    "dashboard",
+    "crypto",
+    "react",
+    "nextjs"
+  ],
+  "author": "VortexAI Team",
+  "license": "MIT"
 }
