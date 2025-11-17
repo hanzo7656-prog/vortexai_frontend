@@ -1,18 +1,30 @@
+// components/ChatInterface.js - نسخه کامل ارتقا یافته
 import { useState, useRef, useEffect } from 'react'
-import { commandParser } from '../lib/commandParser'
-import { healthAPI } from '../lib/api'
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState([
     {
       id: 1,
       type: 'system',
-      content: 'سلام! به VortexAI Monitor خوش آمدید. می‌تونم وضعیت سیستم رو براتون چک کنم.',
+      content: '🤖 سلام! من دستیار هوشمند VortexAI هستم. می‌تونم وضعیت سیستم، قیمت ارزها، اخبار و اطلاعات فنی رو بهتون گزارش بدم.',
       timestamp: new Date()
     }
   ])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [userId] = useState(() => {
+    // ایجاد یا بازیابی شناسه کاربر از localStorage
+    if (typeof window !== 'undefined') {
+      const savedUserId = localStorage.getItem('vortexai_user_id')
+      if (savedUserId) return savedUserId
+      
+      const newUserId = 'user_' + Math.random().toString(36).substr(2, 9)
+      localStorage.setItem('vortexai_user_id', newUserId)
+      return newUserId
+    }
+    return 'user_default'
+  })
+  
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
@@ -22,6 +34,40 @@ export default function ChatInterface() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  useEffect(() => {
+    // بارگذاری تاریخچه گفتگو هنگام لود کامپوننت
+    loadChatHistory()
+  }, [])
+
+  const loadChatHistory = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'}/api/chatbot/history/${userId}`
+      )
+      const data = await response.json()
+      
+      if (data.history && data.history.length > 0) {
+        const historyMessages = data.history.flatMap(conv => [
+          {
+            id: conv.id + '_q',
+            type: 'user',
+            content: conv.question,
+            timestamp: new Date(conv.timestamp)
+          },
+          {
+            id: conv.id + '_a', 
+            type: 'system',
+            content: conv.answer,
+            timestamp: new Date(conv.timestamp)
+          }
+        ])
+        setMessages(prev => [...historyMessages, ...prev])
+      }
+    } catch (error) {
+      console.log('بارگذاری تاریخچه انجام نشد')
+    }
+  }
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return
@@ -38,79 +84,45 @@ export default function ChatInterface() {
     setIsLoading(true)
 
     try {
-      // پردازش دستور کاربر
-      const command = commandParser.parse(inputMessage)
-      let response
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'}/api/chatbot/ask`, 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            question: inputMessage,
+            user_id: userId
+          })
+        }
+      )
 
-      switch (command.type) {
-        case 'health':
-          response = await healthAPI.getStatus(command.detail || 'basic')
-          break
-        case 'cache':
-          response = await healthAPI.getCacheStatus(command.view || 'status')
-          break
-        case 'alerts':
-          response = await healthAPI.getAlerts()
-          break
-        case 'resources':
-          response = await healthAPI.getMetrics('system')
-          break
-        default:
-          response = { message: 'دستور را متوجه نشدم. لطفاً دوباره تلاش کنید.' }
-      }
+      const botResponse = await response.json()
 
       const botMessage = {
         id: Date.now() + 1,
         type: 'system',
-        content: formatResponse(command.type, response),
+        content: botResponse.answer || "❌ پاسخی دریافت نشد",
         timestamp: new Date(),
-        data: response
+        success: botResponse.success,
+        command: botResponse.command,
+        confidence: botResponse.confidence
       }
 
       setMessages(prev => [...prev, botMessage])
+
     } catch (error) {
       const errorMessage = {
         id: Date.now() + 1,
         type: 'system',
-        content: '❌ خطا در دریافت اطلاعات. لطفاً دوباره تلاش کنید.',
+        content: '❌ خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.',
         timestamp: new Date(),
         isError: true
       }
       setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const formatResponse = (type, data) => {
-    switch (type) {
-      case 'health':
-        return `🔄 وضعیت سیستم: ${data.status === 'healthy' ? '🟢 سالم' : '🔴 مشکل'}
-• امتیاز سلامت: ${data.health_score || 0}/100
-• زمان پاسخ: ${data.response_time_ms || 0}ms
-• کش: ${data.services?.cache ? '🟢 فعال' : '🔴 غیرفعال'}
-• کارگران: ${data.detailed_analysis?.background_worker?.workers_active || 0} فعال`
-
-      case 'cache':
-        return `💾 وضعیت کش: ${data.health?.status === 'healthy' ? '🟢 سالم' : '🔴 مشکل'}
-• اتصال: ${data.health?.cloud_resources?.databases_connected || 0}/5 دیتابیس
-• امتیاز: ${data.health?.health_score || 0}%
-• حافظه: ${data.health?.cloud_resources?.storage_used_mb || 0}MB از ${data.health?.cloud_resources?.storage_total_mb || 0}MB`
-
-      case 'alerts':
-        const alerts = data.active_alerts || []
-        return `🚨 هشدارهای فعال: ${alerts.length}
-${alerts.slice(0, 3).map(alert => `• ${alert.level === 'CRITICAL' ? '🔴' : '🟡'} ${alert.title}`).join('\n')}`
-
-      case 'resources':
-        const resources = data.system || {}
-        return `⚡ مصرف منابع:
-• CPU: ${resources.cpu?.usage_percent || 0}%
-• حافظه: ${resources.memory?.usage_percent || 0}%
-• دیسک: ${resources.disk?.usage_percent || 0}%`
-
-      default:
-        return JSON.stringify(data, null, 2)
     }
   }
 
@@ -121,66 +133,162 @@ ${alerts.slice(0, 3).map(alert => `• ${alert.level === 'CRITICAL' ? '🔴' : '
     }
   }
 
+  const quickCommands = [
+    { icon: '🏥', text: 'سلامت سیستم', command: 'وضعیت سیستم چطوره؟' },
+    { icon: '💾', text: 'وضعیت کش', command: 'کش سالمه؟' },
+    { icon: '🚨', text: 'هشدارها', command: 'هشدار داریم؟' },
+    { icon: '⚡', text: 'مصرف منابع', command: 'مصرف منابع سیستم چقدره؟' },
+    { icon: '₿', text: 'قیمت بیتکوین', command: 'قیمت بیتکوین چنده؟' },
+    { icon: '🏆', text: 'لیست ارزها', command: 'لیست ارزهای برتر رو بده' },
+    { icon: '📰', text: 'اخبار جدید', command: 'اخبار جدید چیه؟' },
+    { icon: '🎯', text: 'ترس و طمع', command: 'شاخص ترس و طمع چنده؟' }
+  ]
+
+  const handleQuickCommand = (command) => {
+    setInputMessage(command)
+  }
+
+  const clearChatHistory = () => {
+    setMessages([
+      {
+        id: Date.now(),
+        type: 'system', 
+        content: '🧹 تاریخچه گفتگو پاک شد. چطور می‌تونم کمک کنم؟',
+        timestamp: new Date()
+      }
+    ])
+  }
+
+  const formatMessageContent = (content) => {
+    // فرمت‌دهی متن برای نمایش بهتر
+    return content.split('\n').map((line, index) => (
+      <span key={index}>
+        {line}
+        {index < content.split('\n').length - 1 && <br />}
+      </span>
+    ))
+  }
+
   return (
     <div className="chat-interface">
+      {/* هدر چت */}
+      <div className="chat-header">
+        <div className="chat-title">
+          <div className="bot-avatar">🤖</div>
+          <div>
+            <h3>دستیار VortexAI</h3>
+            <span className="status-dot"></span>
+            <span className="status-text">آنلاین</span>
+          </div>
+        </div>
+        <button 
+          onClick={clearChatHistory}
+          className="clear-button"
+          title="پاک کردن تاریخچه"
+        >
+          🗑️
+        </button>
+      </div>
+
+      {/* پیام‌ها */}
       <div className="chat-messages">
         {messages.map(message => (
-          <div key={message.id} className={`message ${message.type}`}>
+          <div key={message.id} className={`message ${message.type} ${message.isError ? 'error' : ''}`}>
             <div className="message-avatar">
               {message.type === 'user' ? '👤' : '🤖'}
             </div>
             <div className="message-content">
-              <div className="message-text">{message.content}</div>
-              <div className="message-time">
-                {message.timestamp.toLocaleTimeString('fa-IR')}
+              <div className="message-text">
+                {formatMessageContent(message.content)}
+              </div>
+              <div className="message-meta">
+                <span className="message-time">
+                  {message.timestamp.toLocaleTimeString('fa-IR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </span>
+                {message.command && (
+                  <span className="message-command">
+                    • {message.command}
+                  </span>
+                )}
+                {message.confidence && (
+                  <span className="message-confidence">
+                    • اطمینان: {Math.round(message.confidence * 100)}%
+                  </span>
+                )}
               </div>
             </div>
           </div>
         ))}
+        
         {isLoading && (
           <div className="message system">
             <div className="message-avatar">🤖</div>
             <div className="message-content">
-              <div className="loading-dots">
-                <span>.</span>
-                <span>.</span>
-                <span>.</span>
+              <div className="typing-indicator">
+                <span>در حال پردازش</span>
+                <div className="typing-dots">
+                  <span>.</span>
+                  <span>.</span>
+                  <span>.</span>
+                </div>
               </div>
             </div>
           </div>
         )}
+        
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="chat-input-container">
-        <div className="quick-commands">
-          {['وضعیت کلی', 'هشدارها', 'وضعیت کش', 'مصرف منابع', 'کارگران'].map(cmd => (
+      {/* دستورات سریع */}
+      <div className="quick-commands-section">
+        <div className="quick-commands-header">
+          <span>دستورات سریع:</span>
+        </div>
+        <div className="quick-commands-grid">
+          {quickCommands.map((cmd, index) => (
             <button
-              key={cmd}
-              className="quick-command"
-              onClick={() => setInputMessage(cmd)}
+              key={index}
+              className="quick-command-btn"
+              onClick={() => handleQuickCommand(cmd.command)}
+              disabled={isLoading}
             >
-              {cmd}
+              <span className="command-icon">{cmd.icon}</span>
+              <span className="command-text">{cmd.text}</span>
             </button>
           ))}
         </div>
-        
+      </div>
+
+      {/* ورودی متن */}
+      <div className="chat-input-container">
         <div className="input-wrapper">
           <textarea
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="پیام خود را بنویسید... (مثال: وضعیت کلی، هشدارها، وضعیت کش)"
+            placeholder="پیام خود را بنویسید... (مثال: وضعیت سیستم، قیمت بیتکوین، اخبار جدید)"
             rows="1"
             className="chat-input"
+            disabled={isLoading}
           />
           <button 
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading}
             className="send-button"
           >
-            {isLoading ? '⏳' : '📤'}
+            {isLoading ? (
+              <div className="loading-spinner"></div>
+            ) : (
+              '📤'
+            )}
           </button>
+        </div>
+        
+        <div className="input-hint">
+          ⏎ Enter برای ارسال • ⇧ Shift + Enter برای خط جدید
         </div>
       </div>
     </div>
