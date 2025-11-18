@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { useAppState } from '../hooks/useAppState';
-import { usePerformance } from '../hooks/usePerformance';
-import ChatContainer from '../components/Chat/ChatContainer';
-import Sidebar from '../components/UI/Sidebar';
-import Header from '../components/Layout/Header';
-import Footer from '../components/Layout/Footer';
+import { useAppState } from 'hooks/useAppState';
+import { usePerformance } from 'hooks/usePerformance';
+import ChatContainer from 'components/Chat/ChatContainer';
+import Sidebar from 'components/UI/Sidebar';
+import Header from 'components/Layout/Header';
+import Footer from 'components/Layout/Footer';
 
 export default function Home() {
   const { state, actions } = useAppState();
