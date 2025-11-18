@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAppState } from './useAppState';
+import { useAppState } from 'hooks/useAppState';
 
 export function useTheme() {
   const { state, actions } = useAppState();
