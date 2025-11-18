@@ -1,649 +1,394 @@
-/* components.css */
+/* components.css - طراحی جدید چت بات */
 
-/* === کامپوننت‌های عمومی === */
-
-/* StatusCards */
-.status-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.status-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s ease;
-}
-
-.status-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transform: translateY(-2px);
-}
-
-.status-card.healthy {
-  border-left: 4px solid #10b981;
-}
-
-.status-card.warning {
-  border-left: 4px solid #f59e0b;
-}
-
-.status-card.critical {
-  border-left: 4px solid #ef4444;
-}
-
-.card-icon {
-  font-size: 24px;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8fafc;
-  border-radius: 10px;
-}
-
-.card-content {
-  flex: 1;
-}
-
-.card-title {
-  font-size: 14px;
-  color: #6b7280;
-  margin-bottom: 4px;
-  font-weight: 500;
-}
-
-.card-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-  line-height: 1.2;
-}
-
-.card-suffix {
-  font-size: 14px;
-  color: #6b7280;
-  font-weight: 500;
-  margin-left: 4px;
-}
-
-/* ResourceMonitor */
-.resource-monitor {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-}
-
-.monitor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.monitor-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.resources-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.resource-section {
-  background: #f8fafc;
-  border-radius: 8px;
-  padding: 16px;
-  border: 1px solid #e5e7eb;
-}
-
-.resource-section h4 {
-  margin-bottom: 12px;
-  font-size: 14px;
-  color: #374151;
-  font-weight: 600;
-}
-
-.progress-item {
-  margin-bottom: 12px;
-}
-
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.progress-bar {
-  height: 6px;
-  background: #e5e7eb;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.5s ease;
-}
-
-.progress-fill.blue { background: #3b82f6; }
-.progress-fill.green { background: #10b981; }
-.progress-fill.red { background: #ef4444; }
-.progress-fill.purple { background: #8b5cf6; }
-
-/* AlertsPanel */
-.alerts-panel {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-}
-
-.alerts-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.alerts-list {
+/* کانتینر اصلی چت */
+.chat-interface {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.alert-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #fef2f2;
-  border-radius: 8px;
-  border-left: 4px solid #ef4444;
-}
-
-.alert-item.warning {
-  background: #fffbeb;
-  border-left-color: #f59e0b;
-}
-
-.alert-item.info {
-  background: #eff6ff;
-  border-left-color: #3b82f6;
-}
-
-.alert-icon {
-  font-size: 16px;
-}
-
-.alert-content {
-  flex: 1;
-}
-
-.alert-message {
-  font-size: 14px;
-  color: #1f2937;
-  font-weight: 500;
-}
-
-.alert-time {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-/* CacheStatus */
-.cache-status {
+  height: 100vh;
   background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-}
-
-.cache-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.cache-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 8px;
-}
-
-.cache-stat-label {
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 4px;
-}
-
-.cache-stat-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-/* MonitoringDashboard */
-.monitoring-dashboard {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-}
-
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
-}
-
-/* DebugPanel */
-.debug-panel {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.panel-title h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.last-refresh {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.debug-output {
-  background: #1f2937;
-  color: #e5e7eb;
-  padding: 16px;
-  border-radius: 8px;
-  font-family: 'Monaco', 'Consolas', monospace;
-  font-size: 12px;
-  overflow-x: auto;
-  white-space: pre-wrap;
-}
-
-/* === استایل‌های صفحه‌بندی === */
-
-/* Page Container */
-.page-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.header-content h1 {
-  margin: 0 0 8px 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-.header-content p {
-  margin: 0;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Controls */
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.search-box {
   position: relative;
 }
 
-.search-input {
-  padding: 8px 12px;
-  padding-right: 36px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 14px;
-  width: 250px;
-  background: #ffffff;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.select-control {
-  padding: 8px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 14px;
-  background: #ffffff;
-  cursor: pointer;
-}
-
-.refresh-btn {
-  padding: 8px 16px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 14px;
-  color: #374151;
-  font-weight: 500;
-}
-
-.refresh-btn:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-/* Tabs */
-.debug-tabs,
-.insights-tabs,
-.exchanges-tabs {
+/* هدر چت */
+.chat-header {
   display: flex;
-  gap: 4px;
-  margin-bottom: 24px;
-  padding: 4px;
-  background: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-}
-
-.tab-button {
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #6b7280;
-  transition: all 0.2s;
-  font-weight: 500;
-}
-
-.tab-button:hover {
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
   background: #ffffff;
-  color: #374151;
+  border-bottom: 1px solid #f0f0f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.tab-button.active {
-  background: #ffffff;
-  color: #1f2937;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Categories Navigation */
-.categories-nav {
+.chat-title {
   display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bot-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+}
+
+.chat-title h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 24px;
+  font-size: 12px;
+  color: #666;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: pulse 2s infinite;
+}
+
+/* محفظه پیام‌ها - تمام صفحه */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+}
+
+/* پیام‌ها */
+.message {
+  display: flex;
+  padding: 20px;
+  animation: messageSlide 0.3s ease;
+  max-width: 100%;
+}
+
+.message.user {
+  background: #ffffff;
+  justify-content: flex-end;
+}
+
+.message.system {
+  background: #f8f9fa;
+}
+
+.message-content-wrapper {
+  max-width: min(800px, 90%);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.message.user .message-content-wrapper {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.message.system .message-avatar {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.message.user .message-avatar {
+  background: #10b981;
+  color: white;
+}
+
+.message-content {
+  flex: 1;
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  line-height: 1.5;
+}
+
+.message.system .message-content {
+  background: #ffffff;
+  border-bottom-left-radius: 6px;
+}
+
+.message.user .message-content {
+  background: #007bff;
+  color: white;
+  border-bottom-right-radius: 6px;
+}
+
+.message-text {
+  white-space: pre-wrap;
+  font-size: 14px;
+  color: #2d3748;
+  line-height: 1.6;
+}
+
+.message.user .message-text {
+  color: white;
+}
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 11px;
+  opacity: 0.7;
   flex-wrap: wrap;
 }
 
-.category-btn {
-  padding: 8px 16px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #374151;
-  transition: all 0.2s;
+.message-time {
+  color: inherit;
 }
 
-.category-btn:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+.message-response-time,
+.message-command,
+.message-confidence {
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-weight: 500;
 }
 
-.category-btn.active {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #2563eb;
+.message.user .message-response-time,
+.message.user .message-command,
+.message.user .message-confidence {
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* === Grid Layouts === */
-
-.coins-grid,
-.news-list,
-.exchanges-grid,
-.fiats-grid {
-  display: grid;
-  gap: 16px;
-}
-
-.coins-grid {
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-}
-
-.news-list {
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-
-/* === کارت‌ها === */
-
-.coin-card,
-.news-item,
-.exchange-card,
-.fiat-card {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s ease;
-}
-
-.coin-card:hover,
-.news-item:hover,
-.exchange-card:hover,
-.fiat-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transform: translateY(-2px);
-}
-
-/* === وضعیت‌های مختلف === */
-
-.loading-container {
+/* نشانگر تایپ */
+.typing-indicator {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-style: italic;
+  padding: 16px 20px;
+  background: #f8f9fa;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 3px;
+}
+
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #999;
+  animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+/* بخش ورودی چت - پایین صفحه */
+.chat-input-container {
+  background: #ffffff;
+  border-top: 1px solid #e9ecef;
+  padding: 20px;
+  position: sticky;
+  bottom: 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-radius: 24px;
+  padding: 12px 20px;
+  transition: all 0.2s ease;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.input-wrapper:focus-within {
+  border-color: #007bff;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.chat-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  background: transparent;
+  max-height: 120px;
+  min-height: 24px;
+  color: #2d3748;
+  padding: 0;
+}
+
+.chat-input::placeholder {
+  color: #9aa1b9;
+}
+
+.send-button {
+  padding: 10px;
+  border: none;
+  border-radius: 50%;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 44px;
+  height: 44px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
+  flex-shrink: 0;
 }
 
+.send-button:hover:not(:disabled) {
+  background: #0056b3;
+  transform: scale(1.05);
+}
+
+.send-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* اسپینر لودینگ */
 .loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e5e7eb;
-  border-top: 3px solid #2563eb;
+  width: 18px;
+  height: 18px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 16px;
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-  color: #6b7280;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  opacity: 0.5;
-}
-
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-  background: #fef2f2;
-  border-radius: 12px;
-  border: 1px solid #fecaca;
-}
-
-.error-icon {
-  font-size: 32px;
-  margin-bottom: 12px;
-  color: #ef4444;
-}
-
-/* === دکمه‌ها === */
-
-.btn-primary {
-  padding: 8px 16px;
-  background: #2563eb;
-  color: #ffffff;
+/* دکمه پاک کردن */
+.clear-button {
+  background: none;
   border: none;
-  border-radius: 6px;
+  padding: 8px 12px;
   cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.2s;
   font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: #1d4ed8;
+.clear-button:hover:not(:disabled) {
+  background: #f8f9fa;
+  color: #dc3545;
 }
 
-.btn-outline {
-  padding: 8px 16px;
-  background: #ffffff;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
+/* راهنمای ورودی */
+.input-hint {
+  text-align: center;
+  font-size: 12px;
+  color: #9aa1b9;
+  margin-top: 8px;
+  max-width: 800px;
+  margin: 8px auto 0;
 }
 
-.btn-outline:hover:not(:disabled) {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
-.danger-btn {
-  padding: 8px 16px;
-  background: #ef4444;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.danger-btn:hover:not(:disabled) {
-  background: #dc2626;
-}
-
-/* === ریسپانسیو === */
-
+/* حالت موبایل */
 @media (max-width: 768px) {
-  .page-container {
+  .chat-interface {
+    height: 100vh;
+  }
+  
+  .chat-header {
+    padding: 12px 16px;
+  }
+  
+  .message {
     padding: 16px;
   }
   
-  .page-header {
-    flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
+  .message-content-wrapper {
+    max-width: 95%;
   }
   
-  .controls {
-    justify-content: space-between;
+  .message-content {
+    padding: 14px 16px;
   }
   
-  .search-input {
-    width: 100%;
+  .chat-input-container {
+    padding: 16px;
   }
   
-  .status-cards,
-  .coins-grid {
-    grid-template-columns: 1fr;
+  .input-wrapper {
+    padding: 10px 16px;
+    border-radius: 20px;
   }
   
-  .resources-grid {
-    grid-template-columns: 1fr;
+  .send-button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* حالت دسکتاپ بزرگ */
+@media (min-width: 1200px) {
+  .chat-messages {
+    padding: 0 calc(50% - 400px);
   }
   
-  .debug-tabs,
-  .insights-tabs,
-  .exchanges-tabs {
-    flex-wrap: wrap;
+  .chat-input-container {
+    padding: 20px calc(50% - 400px);
   }
-  
-  .tab-button {
-    flex: 1;
-    min-width: 120px;
-    text-align: center;
-  }
+}
+
+/* اسکرول بار سفارشی */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
