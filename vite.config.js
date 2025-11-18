@@ -6,5 +6,11 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true
+  },
+  // تنظیمات مخصوص GitHub Pages
+  base: '/vortexai-frontend/',
+  build: {
+    outDir: 'dist',
+    sourcemap: false
   }
 })
