@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNotifications } from '../../hooks/useNotifications';
+import { useNotifications } from 'hooks/useNotifications';
 import Notification from './Notification';
 
 export default function NotificationsContainer() {
