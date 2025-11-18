@@ -1,132 +1,86 @@
-import { useState, useEffect } from 'react'
-import Head from 'next/head'
-import ChatInterface from '../components/ChatInterface'
-import MonitoringDashboard from '../components/MonitoringDashboard'
-import StatusCards from '../components/StatusCards'
-import ResourceMonitor from '../components/ResourceMonitor'
-import HamburgerMenu from '../components/HamburgerMenu'
-import { healthAPI } from '../lib/api'
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
+import ChatContainer from '../components/Chat/ChatContainer';
+import Sidebar from '../components/UI/Sidebar';
+import Header from '../components/Layout/Header';
 
 export default function Home() {
-  const [systemStatus, setSystemStatus] = useState(null)
-  const [realTimeData, setRealTimeData] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('chat')
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-
-  useEffect(() => {
-    loadInitialData()
-    const interval = setInterval(loadRealTimeData, 30000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const loadInitialData = async () => {
-    try {
-      const [status, health] = await Promise.all([
-        healthAPI.getStatus('basic'),
-        healthAPI.getHealthScore()
-      ])
-      setSystemStatus(status)
-      setRealTimeData(health)
-    } catch (error) {
-      console.error('Error loading initial data:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const loadRealTimeData = async () => {
-    try {
-      const data = await healthAPI.getStatus('basic')
-      setRealTimeData(data)
-    } catch (error) {
-      console.error('Error loading real-time data:', error)
-    }
-  }
-
-  const handleTabChange = (tab) => {
-    setActiveTab(tab)
-    setIsMenuOpen(false) // بستن منو بعد از انتخاب تب
-  }
+  const [currentSession, setCurrentSession] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [user, setUser] = useState({
+    id: `user_${Date.now()}`,
+    name: 'کاربر VortexAI'
+  });
 
   return (
     <div className="app-container">
       <Head>
-        <title>VortexAI Monitor - سیستم مانیتورینگ هوشمند</title>
-        <meta name="description" content="سیستم مانیتورینگ پیشرفته VortexAI" />
+        <title>VortexAI - دستیار هوشمند کریپتو</title>
+        <meta name="description" content="دستیار هوشمند تحلیل بازار کریپتوکارنسی" />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {/* هدر با منوی همبرگر */}
-      <header className="app-header">
-        <div className="header-content">
-          <button 
-            className="hamburger-btn"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="منو"
-          >
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-            <span className="hamburger-line"></span>
-          </button>
+      <div className="main-layout">
+        <Sidebar 
+          isOpen={isSidebarOpen}
+          currentSession={currentSession}
+          user={user}
+          onNewSession={() => setCurrentSession(null)}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+        
+        <div className="chat-area">
+          <Header 
+            user={user}
+            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
           
-          <div className="logo-section">
-            <div className="logo">VortexAI</div>
-            <h1 className="header-title">Monitor</h1>
-          </div>
+          <ChatContainer
+            session={currentSession}
+            user={user}
+            onSessionUpdate={setCurrentSession}
+          />
+        </div>
+      </div>
+
+      <style jsx>{`
+        .app-container {
+          height: 100vh;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          display: flex;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .main-layout {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          background: white;
+          border-radius: 20px;
+          margin: 10px;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+          overflow: hidden;
+        }
+
+        .chat-area {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          background: #f8f9fa;
+        }
+
+        @media (max-width: 768px) {
+          .main-layout {
+            margin: 0;
+            border-radius: 0;
+          }
           
-          <div className="header-stats">
-            {realTimeData && (
-              <div className="status-indicator">
-                <span className={`status-dot ${realTimeData.health_score > 80 ? 'healthy' : 'warning'}`}></span>
-                <span className="status-text">
-                  سلامت: {realTimeData.health_score}%
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* منوی همبرگر */}
-      <HamburgerMenu 
-        isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-      />
-
-      {/* محتوای اصلی */}
-      <main className="main-content">
-        {activeTab === 'chat' && (
-          <div className="chat-section fullscreen">
-            <ChatInterface />
-          </div>
-        )}
-
-        {activeTab === 'monitor' && (
-          <div className="monitor-section">
-            <StatusCards data={realTimeData} />
-            <MonitoringDashboard />
-          </div>
-        )}
-
-        {activeTab === 'resources' && (
-          <div className="resources-section">
-            <ResourceMonitor data={realTimeData} />
-          </div>
-        )}
-      </main>
-
-      {/* فوتر فقط برای دسکتاپ */}
-      <footer className="app-footer desktop-only">
-        <div className="footer-content">
-          <span>VortexAI Monitor v4.0.0</span>
-          <span className="separator">•</span>
-          <span>Status: {systemStatus?.status === 'healthy' ? 'عملیاتی' : 'اختلال'}</span>
-          <span className="separator">•</span>
-          <span>آخرین بروزرسانی: {new Date().toLocaleTimeString('fa-IR')}</span>
-        </div>
-      </footer>
+          .sidebar {
+            position: absolute;
+            z-index: 1000;
+          }
+        }
+      `}</style>
     </div>
-  )
+  );
 }
