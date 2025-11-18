@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useAppState } from './useAppState';
+import { useAppState } from 'hooks/useAppState';
 
 export function useNotifications() {
   const { state, actions } = useAppState();
