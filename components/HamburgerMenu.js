@@ -26,8 +26,8 @@ export default function HamburgerMenu({ isOpen, onClose, activeTab, onTabChange 
 
   const menuItems = [
     { id: 'chat', label: 'گفتگو', icon: '💬' },
-    { id: 'monitor', label: 'مانیتورینگ', icon: '📊' },
-    { id: 'resources', label: 'منابع سیستم', icon: '⚡' },
+    { id: 'dashboard', label: 'داشبورد سیستم', icon: '📊' },
+    { id: 'debug', label: 'ابزارهای دیباگ', icon: '🔧' },
     { id: 'coins', label: 'نمادهای ارز', icon: '💰' },
     { id: 'news', label: 'اخبار بازار', icon: '📰' },
     { id: 'insights', label: 'تحلیل بازار', icon: '🔮' },
