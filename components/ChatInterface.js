@@ -13,6 +13,7 @@ export default function ChatInterface() {
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [currentSessionId, setCurrentSessionId] = useState(null)
+  const [systemStatus, setSystemStatus] = useState(null)
   const [userId] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedUserId = localStorage.getItem('vortexai_user_id')
@@ -37,12 +38,43 @@ export default function ChatInterface() {
 
   useEffect(() => {
     loadChatHistory()
+    checkSystemHealth()
   }, [])
+
+  // بررسی سلامت سیستم
+  const checkSystemHealth = async () => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
+      
+      const response = await fetch(
+        `${API_URL}/api/ai/chat/health`
+      )
+      
+      if (response.ok) {
+        const healthData = await response.json()
+        setSystemStatus(healthData)
+        
+        if (!healthData.ai_available) {
+          const healthMessage = {
+            id: Date.now(),
+            type: 'system',
+            content: '⚠️ سیستم هوش مصنوعی در حال حاضر در دسترس نیست. برخی قابلیت‌ها محدود هستند.',
+            timestamp: new Date(),
+            isWarning: true
+          }
+          setMessages(prev => [healthMessage, ...prev])
+        }
+      }
+    } catch (error) {
+      console.log('بررسی سلامت سیستم انجام نشد:', error.message)
+    }
+  }
 
   const loadChatHistory = async () => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
       
+      // دریافت سشن‌های کاربر
       const sessionsResponse = await fetch(
         `${API_URL}/api/ai/chat/sessions?user_id=${userId}&limit=1`
       )
@@ -57,6 +89,7 @@ export default function ChatInterface() {
         const latestSession = sessionsData.sessions[0]
         setCurrentSessionId(latestSession.session_id)
         
+        // دریافت تاریخچه سشن
         const historyResponse = await fetch(
           `${API_URL}/api/ai/chat/history?session_id=${latestSession.session_id}&limit=20`
         )
@@ -72,7 +105,8 @@ export default function ChatInterface() {
               timestamp: new Date(msg.timestamp),
               success: msg.metadata?.success,
               command: msg.metadata?.intent,
-              confidence: msg.metadata?.confidence
+              confidence: msg.metadata?.confidence,
+              responseTime: msg.metadata?.response_time
             }))
             
             setMessages(prev => [...historyMessages])
@@ -82,6 +116,25 @@ export default function ChatInterface() {
     } catch (error) {
       console.log('بارگذاری تاریخچه انجام نشد:', error.message)
     }
+  }
+
+  // دریافت پیشنهادات سوال
+  const loadSuggestions = async () => {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
+      
+      const response = await fetch(
+        `${API_URL}/api/ai/chat/suggestions?user_id=${userId}`
+      )
+      
+      if (response.ok) {
+        const suggestionsData = await response.json()
+        return suggestionsData.suggestions || []
+      }
+    } catch (error) {
+      console.log('دریافت پیشنهادات انجام نشد:', error.message)
+    }
+    return []
   }
 
   const handleSendMessage = async () => {
@@ -123,6 +176,7 @@ export default function ChatInterface() {
 
       const botResponse = await response.json()
 
+      // ذخیره session_id برای استفاده در ادامه
       if (botResponse.session_id && !currentSessionId) {
         setCurrentSessionId(botResponse.session_id)
       }
@@ -187,6 +241,18 @@ export default function ChatInterface() {
     setCurrentSessionId(null)
   }
 
+  const refreshSystemStatus = async () => {
+    await checkSystemHealth()
+    
+    const statusMessage = {
+      id: Date.now(),
+      type: 'system',
+      content: '🔄 وضعیت سیستم به‌روزرسانی شد',
+      timestamp: new Date()
+    }
+    setMessages(prev => [...prev, statusMessage])
+  }
+
   const formatMessageContent = (content) => {
     return content.split('\n').map((line, index) => (
       <span key={index}>
@@ -203,6 +269,20 @@ export default function ChatInterface() {
     return '#ef4444'
   }
 
+  const getSystemStatusColor = () => {
+    if (!systemStatus) return '#6b7280'
+    if (systemStatus.ai_available && systemStatus.ai_initialized) return '#10b981'
+    if (systemStatus.ai_available) return '#f59e0b'
+    return '#ef4444'
+  }
+
+  const getSystemStatusText = () => {
+    if (!systemStatus) return 'در حال بررسی...'
+    if (systemStatus.ai_available && systemStatus.ai_initialized) return 'فعال'
+    if (systemStatus.ai_available) return 'محدود'
+    return 'غیرفعال'
+  }
+
   return (
     <div className="chat-interface">
       <div className="chat-header">
@@ -210,23 +290,43 @@ export default function ChatInterface() {
           <div className="bot-avatar">🤖</div>
           <div>
             <h3>دستیار VortexAI</h3>
-            <span className="status-dot"></span>
-            <span className="status-text">آنلاین</span>
+            <div className="status-container">
+              <span 
+                className="status-dot" 
+                style={{ backgroundColor: getSystemStatusColor() }}
+              ></span>
+              <span className="status-text">{getSystemStatusText()}</span>
+              {systemStatus && (
+                <span className="status-info">
+                  • {systemStatus.active_sessions} سشن • {systemStatus.total_users} کاربر
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <button 
-          onClick={clearChatHistory}
-          className="clear-button"
-          title="پاک کردن تاریخچه"
-          disabled={isLoading}
-        >
-          {isLoading ? '⏳' : '🗑️'}
-        </button>
+        <div className="header-actions">
+          <button 
+            onClick={refreshSystemStatus}
+            className="refresh-button"
+            title="بررسی وضعیت سیستم"
+            disabled={isLoading}
+          >
+            🔄
+          </button>
+          <button 
+            onClick={clearChatHistory}
+            className="clear-button"
+            title="پاک کردن تاریخچه"
+            disabled={isLoading}
+          >
+            {isLoading ? '⏳' : '🗑️'}
+          </button>
+        </div>
       </div>
 
       <div className="chat-messages">
         {messages.map(message => (
-          <div key={message.id} className={`message ${message.type} ${message.isError ? 'error' : ''}`}>
+          <div key={message.id} className={`message ${message.type} ${message.isError ? 'error' : ''} ${message.isWarning ? 'warning' : ''}`}>
             <div className="message-avatar">
               {message.type === 'user' ? '👤' : '🤖'}
             </div>
@@ -266,6 +366,12 @@ export default function ChatInterface() {
                 {message.isError && (
                   <span className="message-error-flag">
                     • خطا
+                  </span>
+                )}
+                
+                {message.isWarning && (
+                  <span className="message-warning-flag">
+                    • هشدار
                   </span>
                 )}
               </div>
@@ -318,6 +424,9 @@ export default function ChatInterface() {
         
         <div className="input-hint">
           ⏎ Enter برای ارسال • ⇧ Shift + Enter برای خط جدید
+          {systemStatus && !systemStatus.ai_available && (
+            <span className="ai-warning"> • هوش مصنوعی غیرفعال</span>
+          )}
         </div>
       </div>
     </div>
