@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNotifications } from './useNotifications';
+import { useNotifications } from 'hooks/useNotifications';
 
 export function useErrorHandler() {
   const { showError } = useNotifications();
