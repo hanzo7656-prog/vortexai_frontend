@@ -1,4 +1,4 @@
-// components/ChatInterface.js - نسخه بدون دستورات سریع
+// components/ChatInterface.js
 import { useState, useRef, useEffect } from 'react'
 
 export default function ChatInterface() {
@@ -12,6 +12,7 @@ export default function ChatInterface() {
   ])
   const [inputMessage, setInputMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [currentSessionId, setCurrentSessionId] = useState(null)
   const [userId] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedUserId = localStorage.getItem('vortexai_user_id')
@@ -40,30 +41,46 @@ export default function ChatInterface() {
 
   const loadChatHistory = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'}/api/chatbot/history/${userId}`
-      )
-      const data = await response.json()
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
       
-      if (data.history && data.history.length > 0) {
-        const historyMessages = data.history.flatMap(conv => [
-          {
-            id: conv.id + '_q',
-            type: 'user',
-            content: conv.question,
-            timestamp: new Date(conv.timestamp)
-          },
-          {
-            id: conv.id + '_a', 
-            type: 'system',
-            content: conv.answer,
-            timestamp: new Date(conv.timestamp)
+      const sessionsResponse = await fetch(
+        `${API_URL}/api/chat/sessions?user_id=${userId}&limit=1`
+      )
+      
+      if (!sessionsResponse.ok) {
+        throw new Error('خطا در دریافت سشن‌ها')
+      }
+      
+      const sessionsData = await sessionsResponse.json()
+      
+      if (sessionsData.sessions && sessionsData.sessions.length > 0) {
+        const latestSession = sessionsData.sessions[0]
+        setCurrentSessionId(latestSession.session_id)
+        
+        const historyResponse = await fetch(
+          `${API_URL}/api/chat/history?session_id=${latestSession.session_id}&limit=20`
+        )
+        
+        if (historyResponse.ok) {
+          const historyData = await historyResponse.json()
+          
+          if (historyData.messages && historyData.messages.length > 0) {
+            const historyMessages = historyData.messages.map(msg => ({
+              id: `${msg.timestamp}_${msg.role}`,
+              type: msg.role === 'user' ? 'user' : 'system',
+              content: msg.content,
+              timestamp: new Date(msg.timestamp),
+              success: msg.metadata?.success,
+              command: msg.metadata?.intent,
+              confidence: msg.metadata?.confidence
+            }))
+            
+            setMessages(prev => [...historyMessages])
           }
-        ])
-        setMessages(prev => [...historyMessages, ...prev])
+        }
       }
     } catch (error) {
-      console.log('بارگذاری تاریخچه انجام نشد')
+      console.log('بارگذاری تاریخچه انجام نشد:', error.message)
     }
   }
 
@@ -82,39 +99,54 @@ export default function ChatInterface() {
     setIsLoading(true)
 
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
+      
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'}/api/chatbot/ask`, 
+        `${API_URL}/api/chat/send`, 
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            question: inputMessage,
-            user_id: userId
+            message: inputMessage,
+            user_id: userId,
+            session_id: currentSessionId
           })
         }
       )
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || `خطای سرور: ${response.status}`)
+      }
+
       const botResponse = await response.json()
+
+      if (botResponse.session_id && !currentSessionId) {
+        setCurrentSessionId(botResponse.session_id)
+      }
 
       const botMessage = {
         id: Date.now() + 1,
         type: 'system',
-        content: botResponse.answer || "❌ پاسخی دریافت نشد",
+        content: botResponse.response || "❌ پاسخی دریافت نشد",
         timestamp: new Date(),
         success: botResponse.success,
-        command: botResponse.command,
-        confidence: botResponse.confidence
+        command: botResponse.metadata?.intent,
+        confidence: botResponse.metadata?.confidence,
+        responseTime: botResponse.response_time
       }
 
       setMessages(prev => [...prev, botMessage])
 
     } catch (error) {
+      console.error('خطا در ارسال پیام:', error)
+      
       const errorMessage = {
         id: Date.now() + 1,
         type: 'system',
-        content: '❌ خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.',
+        content: `⚠️ خطا در ارتباط: ${error.message}`,
         timestamp: new Date(),
         isError: true
       }
@@ -131,7 +163,19 @@ export default function ChatInterface() {
     }
   }
 
-  const clearChatHistory = () => {
+  const clearChatHistory = async () => {
+    if (currentSessionId) {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
+        await fetch(
+          `${API_URL}/api/chat/sessions/${currentSessionId}`,
+          { method: 'DELETE' }
+        )
+      } catch (error) {
+        console.log('خطا در حذف سشن از سرور:', error)
+      }
+    }
+
     setMessages([
       {
         id: Date.now(),
@@ -140,6 +184,7 @@ export default function ChatInterface() {
         timestamp: new Date()
       }
     ])
+    setCurrentSessionId(null)
   }
 
   const formatMessageContent = (content) => {
@@ -151,9 +196,15 @@ export default function ChatInterface() {
     ))
   }
 
+  const getStatusColor = (confidence) => {
+    if (!confidence) return 'var(--text-secondary)'
+    if (confidence > 0.8) return '#10b981'
+    if (confidence > 0.5) return '#f59e0b'
+    return '#ef4444'
+  }
+
   return (
     <div className="chat-interface">
-      {/* هدر چت */}
       <div className="chat-header">
         <div className="chat-title">
           <div className="bot-avatar">🤖</div>
@@ -167,12 +218,12 @@ export default function ChatInterface() {
           onClick={clearChatHistory}
           className="clear-button"
           title="پاک کردن تاریخچه"
+          disabled={isLoading}
         >
-          🗑️
+          {isLoading ? '⏳' : '🗑️'}
         </button>
       </div>
 
-      {/* پیام‌ها - فضای بیشتر */}
       <div className="chat-messages">
         {messages.map(message => (
           <div key={message.id} className={`message ${message.type} ${message.isError ? 'error' : ''}`}>
@@ -190,14 +241,31 @@ export default function ChatInterface() {
                     minute: '2-digit' 
                   })}
                 </span>
+                
+                {message.responseTime && (
+                  <span className="message-response-time">
+                    • {message.responseTime}ثانیه
+                  </span>
+                )}
+                
                 {message.command && (
                   <span className="message-command">
                     • {message.command}
                   </span>
                 )}
+                
                 {message.confidence && (
-                  <span className="message-confidence">
+                  <span 
+                    className="message-confidence"
+                    style={{ color: getStatusColor(message.confidence) }}
+                  >
                     • اطمینان: {Math.round(message.confidence * 100)}%
+                  </span>
+                )}
+                
+                {message.isError && (
+                  <span className="message-error-flag">
+                    • خطا
                   </span>
                 )}
               </div>
@@ -224,7 +292,6 @@ export default function ChatInterface() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ورودی متن - بدون دستورات سریع */}
       <div className="chat-input-container">
         <div className="input-wrapper">
           <textarea
