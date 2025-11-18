@@ -44,7 +44,7 @@ export default function ChatInterface() {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
       
       const sessionsResponse = await fetch(
-        `${API_URL}/api/chat/sessions?user_id=${userId}&limit=1`
+        `${API_URL}/api/ai/chat/sessions?user_id=${userId}&limit=1`
       )
       
       if (!sessionsResponse.ok) {
@@ -58,7 +58,7 @@ export default function ChatInterface() {
         setCurrentSessionId(latestSession.session_id)
         
         const historyResponse = await fetch(
-          `${API_URL}/api/chat/history?session_id=${latestSession.session_id}&limit=20`
+          `${API_URL}/api/ai/chat/history?session_id=${latestSession.session_id}&limit=20`
         )
         
         if (historyResponse.ok) {
@@ -102,7 +102,7 @@ export default function ChatInterface() {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
       
       const response = await fetch(
-        `${API_URL}/api/chat/send`, 
+        `${API_URL}/api/ai/chat/send`, 
         {
           method: 'POST',
           headers: {
@@ -168,7 +168,7 @@ export default function ChatInterface() {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ai-test-3gix.onrender.com'
         await fetch(
-          `${API_URL}/api/chat/sessions/${currentSessionId}`,
+          `${API_URL}/api/ai/chat/sessions/${currentSessionId}`,
           { method: 'DELETE' }
         )
       } catch (error) {
